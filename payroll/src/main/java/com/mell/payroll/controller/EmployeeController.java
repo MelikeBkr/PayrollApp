@@ -3,10 +3,12 @@ package com.mell.payroll.controller;
 import com.mell.payroll.model.Employee;
 import com.mell.payroll.exception.EmployeeNotFoundException;
 import com.mell.payroll.repository.EmployeeRepository;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -21,10 +23,25 @@ public class EmployeeController
     public EmployeeController(EmployeeRepository repository) {
         this.repository = repository;
     }
+    @GetMapping("/employees/{id}")
+    EntityModel<Employee> getEmployeeById(@PathVariable Long id) {
+
+        Employee employee = repository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+        return EntityModel.of(employee,
+                linkTo(methodOn(EmployeeController.class).getEmployeeById(id)).withSelfRel(),
+                linkTo(methodOn(EmployeeController.class).getAllEmployees()).withRel("employees"));
+    }
     @GetMapping("/employees")
-    List<Employee> getAllEmployees()
-    {
-        return repository.findAll();
+    CollectionModel<EntityModel<Employee>> getAllEmployees() {
+
+        List<EntityModel<Employee>> employees = repository.findAll().stream()
+                .map(employee -> EntityModel.of(employee,
+                        linkTo(methodOn(EmployeeController.class).getEmployeeById(employee.getId())).withSelfRel(),
+                        linkTo(methodOn(EmployeeController.class).getAllEmployees()).withRel("employees")))
+                .collect(Collectors.toList());
+
+        return CollectionModel.of(employees, linkTo(methodOn(EmployeeController.class).getAllEmployees()).withSelfRel());
     }
     @RequestMapping("/employees")
     Employee addNewEmployee(@RequestBody Employee newEmployee)
@@ -51,13 +68,5 @@ public class EmployeeController
     {
         repository.deleteById(id);
     }
-    @GetMapping("/employees/{id}")
-    EntityModel<Employee> getEmployeeById(@PathVariable Long id) {
 
-        Employee employee = repository.findById(id)
-                .orElseThrow(() -> new EmployeeNotFoundException(id));
-        return EntityModel.of(employee,
-                linkTo(methodOn(EmployeeController.class).getEmployeeById(id)).withSelfRel(),
-                linkTo(methodOn(EmployeeController.class).getAllEmployees()).withRel("employees"));
-    }
 }
