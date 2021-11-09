@@ -1,4 +1,4 @@
-package com.mell.payroll.model;
+package com.mell.payroll.exception;
 
 public class EmployeeNotFoundException extends RuntimeException
 {

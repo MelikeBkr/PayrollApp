@@ -1,7 +1,7 @@
 package com.mell.payroll.controller;
 
 import com.mell.payroll.model.Employee;
-import com.mell.payroll.model.EmployeeNotFoundException;
+import com.mell.payroll.exception.EmployeeNotFoundException;
 import com.mell.payroll.repository.EmployeeRepository;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +28,7 @@ public class EmployeeController
         return repository.save(newEmployee);
     }
     @GetMapping("/employees/{id}")
-    Employee getEmployeesWithId(@PathVariable Long id)
+    Employee getEmployeeById(@PathVariable Long id)
     {
         return repository.findById(id)
                 .orElseThrow(()-> new EmployeeNotFoundException(id));
