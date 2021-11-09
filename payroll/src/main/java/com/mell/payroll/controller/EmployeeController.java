@@ -3,9 +3,13 @@ package com.mell.payroll.controller;
 import com.mell.payroll.model.Employee;
 import com.mell.payroll.exception.EmployeeNotFoundException;
 import com.mell.payroll.repository.EmployeeRepository;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 //the data returned by each method will be written straight into the response body
 // instead of rendering a template.
@@ -27,12 +31,7 @@ public class EmployeeController
     {
         return repository.save(newEmployee);
     }
-    @GetMapping("/employees/{id}")
-    Employee getEmployeeById(@PathVariable Long id)
-    {
-        return repository.findById(id)
-                .orElseThrow(()-> new EmployeeNotFoundException(id));
-    }
+
     @PutMapping("/employees/{id}")
     Employee replaceEmployee(@RequestBody Employee newEmployee, @PathVariable Long id)
     {
@@ -52,5 +51,13 @@ public class EmployeeController
     {
         repository.deleteById(id);
     }
+    @GetMapping("/employees/{id}")
+    EntityModel<Employee> getEmployeeById(@PathVariable Long id) {
 
+        Employee employee = repository.findById(id)
+                .orElseThrow(() -> new EmployeeNotFoundException(id));
+        return EntityModel.of(employee,
+                linkTo(methodOn(EmployeeController.class).getEmployeeById(id)).withSelfRel(),
+                linkTo(methodOn(EmployeeController.class).getAllEmployees()).withRel("employees"));
+    }
 }
