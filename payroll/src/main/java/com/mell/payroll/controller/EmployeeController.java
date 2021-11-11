@@ -76,9 +76,11 @@ public class EmployeeController
                 .body(entityModel);
     }
     @DeleteMapping("/employees/{id}")
-    void deleteEmployee(@PathVariable Long id)
+    ResponseEntity<?> deleteEmployee(@PathVariable Long id)
     {
         repository.deleteById(id);
+        //NOTE: this returns an HTTP 204 NO Content response
+        return ResponseEntity.noContent().build();
     }
 
 }
